@@ -11,6 +11,7 @@ from distutils.ccompiler import new_compiler
 from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 
+from cffi import FFI
 from cffi import recompiler as cffi_recompiler
 from cffi import setuptools_ext as cffi_ste
 
@@ -32,7 +33,8 @@ __all__ = ['lib', 'ffi']
 
 import os
 from %(cffi_module_path)s import ffi
-lib = ffi.dlopen(os.path.join(os.path.dirname(__file__), %(lib_filename)r))
+
+lib = ffi.dlopen(os.path.join(os.path.dirname(__file__), %(lib_filename)r), %(rtld_flags)r)
 del os
 '''
 
@@ -152,17 +154,31 @@ class ExternalBuildStep(BuildStep):
         self.spec.add_build_func(build)
 
 
+def get_rtld_flags(flags):
+    ffi = FFI()
+    if not flags:
+        return ffi.RTLD_NOW
+
+    rv = 0
+    for flag in flags:
+        if flag.startswith('RTLD_'):
+            flag = flag[5:]
+        rv |= getattr(ffi, 'RTLD_' + flag)
+    return rv
+
+
 class CffiModuleBuildStep(BuildStep):
 
     def __init__(self, spec, module_path, dylib=None, header_filename=None,
                  header_source=None, header_strip_directives=True,
-                 path=None):
+                 path=None, rtld_flags=None):
         BuildStep.__init__(self, spec, path=path)
         self.module_path = module_path
         self.dylib = dylib
         self.header_filename = header_filename
         self.header_source = header_source
         self.header_strip_directives = header_strip_directives
+        self.rtld_flags = get_rtld_flags(rtld_flags)
 
         parts = self.module_path.rsplit('.', 2)
         self.module_base = parts[0]
@@ -231,6 +247,7 @@ class CffiModuleBuildStep(BuildStep):
                 f.write((MODULE_PY % {
                     'cffi_module_path': self.cffi_module_path,
                     'lib_filename': self.lib_filename,
+                    'rtld_flags': self.rtld_flags,
                 }).encode('utf-8'))
         self.spec.add_build_func(build_cffi, module_base=self.module_base)
 
