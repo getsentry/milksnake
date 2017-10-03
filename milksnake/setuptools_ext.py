@@ -19,7 +19,6 @@ try:
 except ImportError:
     bdist_wheel = None
 
-CFFI_PLACEHOLDER = '$.__milksnake_placeholder'
 here = os.path.abspath(os.path.dirname(__file__))
 EMPTY_C = os.path.join(here, 'empty.c')
 BUILD_PY = u'''
