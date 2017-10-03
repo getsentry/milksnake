@@ -1,0 +1,12 @@
+[package]
+name = "example"
+version = "0.1.0"
+authors = ["Armin Ronacher <armin.ronacher@active-4.com>"]
+build = "build.rs"
+
+[lib]
+name = "example"
+crate-type = ["cdylib"]
+
+[build-dependencies]
+cbindgen = "0.1"
