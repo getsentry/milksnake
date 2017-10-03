@@ -163,7 +163,7 @@ def get_rtld_flags(flags):
     for flag in flags:
         if flag.startswith('RTLD_'):
             flag = flag[5:]
-        rv |= getattr(ffi, 'RTLD_' + flag)
+        rv |= getattr(ffi, 'RTLD_' + flag.upper())
     return rv
 
 
