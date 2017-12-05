@@ -21,7 +21,11 @@ except ImportError:
     bdist_wheel = None
 
 here = os.path.abspath(os.path.dirname(__file__))
-EMPTY_C = os.path.join(here, 'empty.c')
+EMPTY_C = u'''
+void init%(mod)s() {}
+void PyInit_%(mod)s() {}
+'''
+
 BUILD_PY = u'''
 import cffi
 from milksnake.ffi import make_ffi
@@ -195,6 +199,7 @@ class CffiModuleBuildStep(BuildStep):
         genbase = '%s._%s' % (parts[0], parts[1].lstrip('_'))
         self.cffi_module_path = '%s__ffi' % genbase
 
+        self.fake_module_name = "%s__lib" % genbase.split('.')[-1]
         self.lib_filename = '%s__lib%s' % (
             genbase.split('.')[-1],
             new_compiler().shared_lib_extension,
@@ -222,8 +227,16 @@ class CffiModuleBuildStep(BuildStep):
         # other systems into assuming our library has binary extensions.
         if dist.ext_modules is None:
             dist.ext_modules = []
-        dist.ext_modules.append(Extension(self.fake_module_path,
-                                          sources=[EMPTY_C]))
+
+        build = dist.get_command_obj("build")
+        build.ensure_finalized()
+        empty_c_path = os.path.join(build.build_temp, "empty.c")
+        with open(empty_c_path, "w") as f:
+            f.write(EMPTY_C % {"mod": self.fake_module_name})
+
+        dist.ext_modules.append(
+            Extension(self.fake_module_path, sources=[empty_c_path])
+        )
 
         def make_ffi():
             from milksnake.ffi import make_ffi
