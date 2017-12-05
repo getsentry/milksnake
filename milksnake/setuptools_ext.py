@@ -122,10 +122,15 @@ class ExternalBuildStep(BuildStep):
         path = self.path or '.'
         if in_path is not None:
             path = os.path.join(path, *in_path.split('/'))
-        to_find = 'lib%s%s' % (
-            name,
-            sys.platform == 'darwin' and '.dylib' or '.so',
-        )
+
+        to_find = None
+        if sys.platform == "darwin":
+            to_find = "lib%s.dylib" % name
+        elif sys.platform == "win32":
+            to_find = "%s.dll" % name
+        else:
+            to_find = "lib%s.so" % name
+
         for filename in os.listdir(path):
             if filename == to_find:
                 return os.path.join(path, filename)
@@ -155,6 +160,9 @@ class ExternalBuildStep(BuildStep):
 
 
 def get_rtld_flags(flags):
+    if sys.platform == "win32":
+        return 0
+
     ffi = FFI()
     if not flags:
         return ffi.RTLD_NOW
