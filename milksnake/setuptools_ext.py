@@ -21,7 +21,11 @@ except ImportError:
     bdist_wheel = None
 
 here = os.path.abspath(os.path.dirname(__file__))
-EMPTY_C = os.path.join(here, 'empty.c')
+EMPTY_C = u'''
+void init%(mod)s() {}
+void PyInit_%(mod)s() {}
+'''
+
 BUILD_PY = u'''
 import cffi
 from milksnake.ffi import make_ffi
@@ -122,10 +126,15 @@ class ExternalBuildStep(BuildStep):
         path = self.path or '.'
         if in_path is not None:
             path = os.path.join(path, *in_path.split('/'))
-        to_find = 'lib%s%s' % (
-            name,
-            sys.platform == 'darwin' and '.dylib' or '.so',
-        )
+
+        to_find = None
+        if sys.platform == "darwin":
+            to_find = "lib%s.dylib" % name
+        elif sys.platform == "win32":
+            to_find = "%s.dll" % name
+        else:
+            to_find = "lib%s.so" % name
+
         for filename in os.listdir(path):
             if filename == to_find:
                 return os.path.join(path, filename)
@@ -155,6 +164,9 @@ class ExternalBuildStep(BuildStep):
 
 
 def get_rtld_flags(flags):
+    if sys.platform == "win32":
+        return 0
+
     ffi = FFI()
     if not flags:
         return ffi.RTLD_NOW
@@ -187,6 +199,7 @@ class CffiModuleBuildStep(BuildStep):
         genbase = '%s._%s' % (parts[0], parts[1].lstrip('_'))
         self.cffi_module_path = '%s__ffi' % genbase
 
+        self.fake_module_name = "%s__lib" % genbase.split('.')[-1]
         self.lib_filename = '%s__lib%s' % (
             genbase.split('.')[-1],
             new_compiler().shared_lib_extension,
@@ -214,8 +227,16 @@ class CffiModuleBuildStep(BuildStep):
         # other systems into assuming our library has binary extensions.
         if dist.ext_modules is None:
             dist.ext_modules = []
-        dist.ext_modules.append(Extension(self.fake_module_path,
-                                          sources=[EMPTY_C]))
+
+        build = dist.get_command_obj("build")
+        build.ensure_finalized()
+        empty_c_path = os.path.join(build.build_temp, "empty.c")
+        with open(empty_c_path, "w") as f:
+            f.write(EMPTY_C % {"mod": self.fake_module_name})
+
+        dist.ext_modules.append(
+            Extension(self.fake_module_path, sources=[empty_c_path])
+        )
 
         def make_ffi():
             from milksnake.ffi import make_ffi
