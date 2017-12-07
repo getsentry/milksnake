@@ -88,6 +88,24 @@ class Spec(object):
                     func(base_path=base_path, inplace=False)
 
         class MilksnakeBuildExt(base_build_ext):
+            def get_ext_fullpath(self, ext_name):
+                milksnake_dummy_ext = None
+                for ext in spec.dist.ext_modules:
+                    if ext.name == ext_name:
+                        milksnake_dummy_ext = getattr(
+                            ext, 'milksnake_dummy_ext', None)
+                        break
+
+                if milksnake_dummy_ext is None:
+                    return base_build_ext.get_ext_fullpath(self, ext_name)
+
+                fullname = self.get_ext_fullname(ext_name)
+                modpath = fullname.split('.')
+                package = '.'.join(modpath[0:-1])
+                build_py = self.get_finalized_command('build_py')
+                package_dir = os.path.abspath(build_py.get_package_dir(package))
+                return os.path.join(package_dir, milksnake_dummy_ext)
+
             def run(self):
                 base_build_ext.run(self)
                 if self.inplace:
@@ -200,10 +218,11 @@ class CffiModuleBuildStep(BuildStep):
         self.cffi_module_path = '%s__ffi' % genbase
         self.fake_module_path = '%s__lib' % genbase
 
-        bdist_ext = spec.dist.get_command_obj('build_ext', 1)
-        bdist_ext.ensure_finalized()
-        self.lib_filename = bdist_ext.get_ext_filename(
-            self.fake_module_path).split(os.path.sep, 1)[-1]
+        from distutils.sysconfig import get_config_var
+        self.lib_filename = '%s__lib%s' % (
+            genbase.split('.')[-1],
+            get_config_var('SHLIB_SUFFIX') or get_config_var('SO')
+        )
 
     def get_header_source(self):
         if self.header_source is not None:
@@ -227,15 +246,17 @@ class CffiModuleBuildStep(BuildStep):
         if dist.ext_modules is None:
             dist.ext_modules = []
 
-        build = dist.get_command_obj("build")
+        build = dist.get_command_obj('build')
         build.ensure_finalized()
-        empty_c_path = os.path.join(build.build_temp, "empty.c")
-        with open(empty_c_path, "w") as f:
-            f.write(EMPTY_C % {"mod": self.fake_module_name})
+        empty_c_path = os.path.join(build.build_temp, 'empty.c')
+        if not os.path.isdir(build.build_temp):
+            os.makedirs(build.build_temp)
+        with open(empty_c_path, 'w') as f:
+            f.write(EMPTY_C % {'mod': self.fake_module_path.split('.')[-1]})
 
-        dist.ext_modules.append(
-            Extension(self.fake_module_path, sources=[empty_c_path])
-        )
+        ext = Extension(self.fake_module_path, sources=[empty_c_path])
+        ext.milksnake_dummy_ext = self.lib_filename
+        dist.ext_modules.append(ext)
 
         def make_ffi():
             from milksnake.ffi import make_ffi
@@ -259,7 +280,7 @@ class CffiModuleBuildStep(BuildStep):
             updated = cffi_recompiler.make_py_source(
                 ffi, self.cffi_module_path, py_file)
             if not updated:
-                log.info("already up-to-date")
+                log.info('already up-to-date')
 
             # wrapper
             log.info('generating wrapper for %r' % self.module_path)
