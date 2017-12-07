@@ -12,9 +12,10 @@ There are already other projects that make Python and native libraries play
 along but this one is different.  Unlike other projects that build Python
 extension modules the goal of this project is to build regular native libraries
 that are then loaded with CFFI at runtime.  Why not just use CFFI?  Because
-CFFI's setuptools support alone does not properly work with wheels and it does
-not provide a good way to invoke an external build process (like a makefile,
-cargo to build rust binaries etc.)
+CFFI's setuptools support alone does not properly work with such wheels (it
+does not provide a way to build and properly tag wheels for shared libraries) and
+it does not provide a good way to invoke an external build process (like a
+makefile, cargo to build rust binaries etc.)
 
 In particular you will most likely only need two wheels for Linux, one for macs
 and soon one for Windows independently of how many Python interpreters you want
