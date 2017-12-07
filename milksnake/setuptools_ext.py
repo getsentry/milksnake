@@ -128,12 +128,12 @@ class ExternalBuildStep(BuildStep):
             path = os.path.join(path, *in_path.split('/'))
 
         to_find = None
-        if sys.platform == "darwin":
-            to_find = "lib%s.dylib" % name
-        elif sys.platform == "win32":
-            to_find = "%s.dll" % name
+        if sys.platform == 'darwin':
+            to_find = 'lib%s.dylib' % name
+        elif sys.platform == 'win32':
+            to_find = '%s.dll' % name
         else:
-            to_find = "lib%s.so" % name
+            to_find = 'lib%s.so' % name
 
         for filename in os.listdir(path):
             if filename == to_find:
