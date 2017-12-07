@@ -198,13 +198,12 @@ class CffiModuleBuildStep(BuildStep):
 
         genbase = '%s._%s' % (parts[0], parts[1].lstrip('_'))
         self.cffi_module_path = '%s__ffi' % genbase
-
-        self.fake_module_name = "%s__lib" % genbase.split('.')[-1]
-        self.lib_filename = '%s__lib%s' % (
-            genbase.split('.')[-1],
-            new_compiler().shared_lib_extension,
-        )
         self.fake_module_path = '%s__lib' % genbase
+
+        bdist_ext = spec.dist.get_command_obj('build_ext', 1)
+        bdist_ext.ensure_finalized()
+        self.lib_filename = bdist_ext.get_ext_filename(
+            self.fake_module_path).split(os.path.sep, 1)[-1]
 
     def get_header_source(self):
         if self.header_source is not None:
