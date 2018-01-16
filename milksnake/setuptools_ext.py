@@ -262,7 +262,7 @@ class CffiModuleBuildStep(BuildStep):
             from milksnake.ffi import make_ffi
             return make_ffi(self.module_path,
                             self.get_header_source(),
-                            strip_directives=True)
+                            strip_directives=self.header_strip_directives)
 
         def build_cffi(base_path, **extra):
             # dylib
