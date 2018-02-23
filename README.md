@@ -93,6 +93,7 @@ And the `rust/Cargo.toml`:
 ```toml
 [package]
 name = "example"
+version = "0.1.0"
 build = "build.rs"
 
 [lib]
