@@ -49,7 +49,8 @@ def build_native(spec):
     spec.add_cffi_module(
         module_path='example._native',
         dylib=lambda: build.find_dylib('example', in_path='target/release'),
-        header_filename=lambda: build.find_header('example.h', in_path='target')
+        header_filename=lambda: build.find_header('example.h', in_path='target'),
+        rtld_flags=['NOW', 'NODELETE']
     )
 
 setup(
@@ -101,7 +102,7 @@ name = "example"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-cbindgen = "0.1"
+cbindgen = "0.4"
 ```
 
 And finally the build.rs file:
