@@ -23,7 +23,7 @@ to target.
 
 ## What is supported?
 
-* Platforms: Linux, Mac (Windows later)
+* Platforms: Linux, Mac, Windows
 * setuptools commands: `bdist_wheel`, `build`, `build_ext`, `develop`
 * `pip install --editable .`
 * Universal wheels (`PACKAGE-py2.py3-none-PLATFORM.whl`); this can be disabled
