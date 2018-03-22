@@ -1,16 +1,22 @@
 from setuptools import setup
 from setuptools.dist import Distribution
 
+with open('README.md', 'rb') as f:
+    readme = f.read().decode('utf-8')
+
 setup(
     name='milksnake',
-    version='0.1.2',
+    version='0.1.3',
     author='Armin Ronacher',
     author_email='armin.ronacher@active-4.com',
+    license='Apache License 2.0',
     packages=['milksnake'],
     package_data={
         'milksnake': ['empty.c'],
     },
     description='A python library that extends setuptools for binary extensions.',
+    long_description=readme,
+    long_description_content_type='text/markdown',
     zip_safe=False,
     platforms='any',
     install_requires=[
