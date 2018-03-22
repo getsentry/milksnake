@@ -1,5 +1,9 @@
 # Milksnake
 
+<a href="https://pypi.python.org/pypi/milksnake"><img src="https://img.shields.io/pypi/v/milksnake.svg" alt=""></a>
+<a href="https://github.com/getsentry/milksnake/blob/master/LICENSE"><img src="https://img.shields.io/pypi/l/milksnake.svg" alt=""></a>
+
+
 Milksnake is an extension for setuptools that allows you to distribute
 dynamic linked libraries in Python wheels in the most portable way imaginable.
 
