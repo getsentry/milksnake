@@ -40,7 +40,7 @@ class VirtualEnv(object):
         proc = self.spawn('python', ['-c', EVAL_HOOK],
                           stdin=subprocess.PIPE,
                           stdout=subprocess.PIPE)
-        stdout = proc.communicate(code)[0]
+        stdout = proc.communicate(code.encode('utf-8'))[0]
         rv = proc.wait()
         if rv != 0:
             raise RuntimeError('Interpreter exited with %d' % rv)
