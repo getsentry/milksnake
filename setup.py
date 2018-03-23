@@ -6,7 +6,7 @@ with open('README.md', 'rb') as f:
 
 setup(
     name='milksnake',
-    version='0.1.3',
+    version='0.1.4',
     author='Armin Ronacher',
     author_email='armin.ronacher@active-4.com',
     license='Apache License 2.0',
