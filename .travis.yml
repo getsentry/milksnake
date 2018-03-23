@@ -11,6 +11,10 @@ matrix:
 
 install:
   - pip install pytest
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y
+  - export PATH="${HOME}/.cargo/bin:${PATH}"
+  - which cargo
+  - which rustc
 
 script:
   - make test
