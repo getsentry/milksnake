@@ -1,0 +1,19 @@
+os: linux
+sudo: false
+language: python
+
+matrix:
+  include:
+    - python: 3.6
+    - python: 2.7
+    - python: pypy
+  fast_finish: true
+
+install:
+  - pip install pytest
+
+script:
+  - make test
+
+cache:
+  - pip
