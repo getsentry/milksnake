@@ -1,6 +1,7 @@
 # Milksnake
 
 <a href="https://pypi.python.org/pypi/milksnake"><img src="https://img.shields.io/pypi/v/milksnake.svg" alt=""></a>
+<a href="https://travis-ci.org/getsentry/milksnake"><img src="https://travis-ci.org/getsentry/milksnake.svg?branch=master" alt=""></a>
 <a href="https://github.com/getsentry/milksnake/blob/master/LICENSE"><img src="https://img.shields.io/pypi/l/milksnake.svg" alt=""></a>
 
 
