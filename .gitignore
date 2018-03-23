@@ -4,3 +4,4 @@ dist
 build
 __pycache__
 .eggs
+.pytest_cache
