@@ -275,10 +275,8 @@ class CffiModuleBuildStep(BuildStep):
             # generate cffi module
             ffi = make_ffi()
             log.info('generating cffi module for %r' % self.module_path)
-            cffi_module_depth = self.cffi_module_path.count('.')
             py_file = os.path.join(
-                base_path,
-                *self.cffi_module_path.split('.')[cffi_module_depth:]) + '.py'
+                base_path, self.cffi_module_path.split('.')[-1]) + '.py'
             updated = cffi_recompiler.make_py_source(
                 ffi, self.cffi_module_path, py_file)
             if not updated:
