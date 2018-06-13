@@ -16,6 +16,7 @@ setup(
     },
     description='A python library that extends setuptools for binary extensions.',
     long_description=readme,
+    long_description_content_type='text/markdown',
     zip_safe=False,
     platforms='any',
     install_requires=[
