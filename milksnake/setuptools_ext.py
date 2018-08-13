@@ -22,8 +22,8 @@ except ImportError:
 
 here = os.path.abspath(os.path.dirname(__file__))
 EMPTY_C = u'''
-void init%(mod)s() {}
-void PyInit_%(mod)s() {}
+void init%(mod)s(void) {}
+void PyInit_%(mod)s(void) {}
 '''
 
 BUILD_PY = u'''
