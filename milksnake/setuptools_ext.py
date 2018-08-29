@@ -210,7 +210,7 @@ class CffiModuleBuildStep(BuildStep):
         self.header_strip_directives = header_strip_directives
         self.rtld_flags = get_rtld_flags(rtld_flags)
 
-        parts = self.module_path.rsplit('.', 2)
+        parts = self.module_path.rsplit('.', 1)
         self.module_base = parts[0]
         self.name = parts[-1]
 
@@ -276,7 +276,7 @@ class CffiModuleBuildStep(BuildStep):
             ffi = make_ffi()
             log.info('generating cffi module for %r' % self.module_path)
             py_file = os.path.join(
-                base_path, *self.cffi_module_path.split('.')[1:]) + '.py'
+                base_path, self.cffi_module_path.split('.')[-1]) + '.py'
             updated = cffi_recompiler.make_py_source(
                 ffi, self.cffi_module_path, py_file)
             if not updated:
