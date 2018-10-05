@@ -200,14 +200,12 @@ def get_rtld_flags(flags):
 class CffiModuleBuildStep(BuildStep):
 
     def __init__(self, spec, module_path, dylib=None, header_filename=None,
-                 header_source=None, header_strip_directives=True,
-                 path=None, rtld_flags=None):
+                 header_source=None, path=None, rtld_flags=None):
         BuildStep.__init__(self, spec, path=path)
         self.module_path = module_path
         self.dylib = dylib
         self.header_filename = header_filename
         self.header_source = header_source
-        self.header_strip_directives = header_strip_directives
         self.rtld_flags = get_rtld_flags(rtld_flags)
 
         parts = self.module_path.rsplit('.', 1)
@@ -261,8 +259,7 @@ class CffiModuleBuildStep(BuildStep):
         def make_ffi():
             from milksnake.ffi import make_ffi
             return make_ffi(self.module_path,
-                            self.get_header_source(),
-                            strip_directives=self.header_strip_directives)
+                            self.get_header_source())
 
         def build_cffi(base_path, **extra):
             # dylib
