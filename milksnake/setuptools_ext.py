@@ -1,19 +1,15 @@
 import os
 import sys
-import uuid
 import shutil
-import tempfile
 import subprocess
 
 from distutils import log
 from distutils.core import Extension
-from distutils.ccompiler import new_compiler
 from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 
 from cffi import FFI
 from cffi import recompiler as cffi_recompiler
-from cffi import setuptools_ext as cffi_ste
 
 try:
     from wheel.bdist_wheel import bdist_wheel
@@ -145,7 +141,6 @@ class ExternalBuildStep(BuildStep):
         if in_path is not None:
             path = os.path.join(path, *in_path.split('/'))
 
-        to_find = None
         if sys.platform == 'darwin':
             to_find = 'lib%s.dylib' % name
         elif sys.platform == 'win32':
@@ -200,14 +195,12 @@ def get_rtld_flags(flags):
 class CffiModuleBuildStep(BuildStep):
 
     def __init__(self, spec, module_path, dylib=None, header_filename=None,
-                 header_source=None, header_strip_directives=True,
-                 path=None, rtld_flags=None):
+                 header_source=None, path=None, rtld_flags=None):
         BuildStep.__init__(self, spec, path=path)
         self.module_path = module_path
         self.dylib = dylib
         self.header_filename = header_filename
         self.header_source = header_source
-        self.header_strip_directives = header_strip_directives
         self.rtld_flags = get_rtld_flags(rtld_flags)
 
         parts = self.module_path.rsplit('.', 1)
@@ -261,8 +254,7 @@ class CffiModuleBuildStep(BuildStep):
         def make_ffi():
             from milksnake.ffi import make_ffi
             return make_ffi(self.module_path,
-                            self.get_header_source(),
-                            strip_directives=self.header_strip_directives)
+                            self.get_header_source())
 
         def build_cffi(base_path, **extra):
             # dylib
