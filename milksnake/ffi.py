@@ -1,4 +1,3 @@
-import os
 import cffi
 
 from ._compat import PY2

@@ -1,19 +1,15 @@
 import os
 import sys
-import uuid
 import shutil
-import tempfile
 import subprocess
 
 from distutils import log
 from distutils.core import Extension
-from distutils.ccompiler import new_compiler
 from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 
 from cffi import FFI
 from cffi import recompiler as cffi_recompiler
-from cffi import setuptools_ext as cffi_ste
 
 try:
     from wheel.bdist_wheel import bdist_wheel
@@ -145,7 +141,6 @@ class ExternalBuildStep(BuildStep):
         if in_path is not None:
             path = os.path.join(path, *in_path.split('/'))
 
-        to_find = None
         if sys.platform == 'darwin':
             to_find = 'lib%s.dylib' % name
         elif sys.platform == 'win32':
