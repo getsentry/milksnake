@@ -143,6 +143,7 @@ class ExternalBuildStep(BuildStep):
     def find_dylib(self, name, in_path=None):
         path = self.path or os.curdir
         if in_path is not None:
+            in_path = os.path.normpath(in_path)
             if os.path.isabs(in_path):
                 path = in_path
             else:
@@ -165,6 +166,7 @@ class ExternalBuildStep(BuildStep):
     def find_header(self, name, in_path=None):
         path = self.path or os.curdir
         if in_path is not None:
+            in_path = os.path.normpath(in_path)
             if os.path.isabs(in_path):
                 path = in_path
             else:
