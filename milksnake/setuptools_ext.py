@@ -143,7 +143,10 @@ class ExternalBuildStep(BuildStep):
     def find_dylib(self, name, in_path=None):
         path = self.path or '.'
         if in_path is not None:
-            path = os.path.join(path, *in_path.split('/'))
+            if os.path.isabs(in_path):
+                path = in_path
+            else:
+                path = os.path.join(path, in_path)
 
         to_find = None
         if sys.platform == 'darwin':
@@ -162,7 +165,10 @@ class ExternalBuildStep(BuildStep):
     def find_header(self, name, in_path=None):
         path = self.path or '.'
         if in_path is not None:
-            path = os.path.join(path, *in_path.split('/'))
+            if os.path.isabs(in_path):
+                path = in_path
+            else:
+                path = os.path.join(path, in_path)
         for filename in os.listdir(path):
             if filename == name:
                 return os.path.join(path, filename)
