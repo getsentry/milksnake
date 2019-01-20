@@ -141,7 +141,7 @@ class ExternalBuildStep(BuildStep):
         self.env = env
 
     def find_dylib(self, name, in_path=None):
-        path = self.path or '.'
+        path = self.path or os.curdir
         if in_path is not None:
             if os.path.isabs(in_path):
                 path = in_path
@@ -163,7 +163,7 @@ class ExternalBuildStep(BuildStep):
         raise LookupError('dylib %r not found' % name)
 
     def find_header(self, name, in_path=None):
-        path = self.path or '.'
+        path = self.path or os.curdir
         if in_path is not None:
             if os.path.isabs(in_path):
                 path = in_path
