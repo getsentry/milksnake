@@ -185,10 +185,18 @@ class CffiModuleBuildStep(BuildStep):
         self.cffi_module_path = '%s__ffi' % genbase
 
         from distutils.sysconfig import get_config_var
-        self.lib_filename = '%s__lib%s' % (
-            genbase.split('.')[-1],
-            get_config_var('SHLIB_SUFFIX') or get_config_var('SO')
-        )
+
+        if sys.platform == 'darwin':
+            plat_ext = ".dylib"
+        elif sys.platform == 'win32':
+            plat_ext = ".dll"
+        else:
+            plat_ext = ".so"
+        ext = get_config_var('EXT_SUFFIX') or \
+            get_config_var('SHLIB_SUFFIX') or \
+            get_config_var('SO') or plat_ext
+
+        self.lib_filename = '%s__lib%s' % (genbase.split('.')[-1], ext)
 
     def get_header_source(self):
         if self.header_source is not None:
