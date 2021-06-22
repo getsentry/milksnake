@@ -107,7 +107,7 @@ name = "example"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-cbindgen = "0.4"
+cbindgen = "0.19"
 ```
 
 And finally the build.rs file:
