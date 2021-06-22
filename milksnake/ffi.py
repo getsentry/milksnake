@@ -14,6 +14,7 @@ def make_ffi(module_path, header, strip_directives=False):
         header = header.decode('utf-8')
     if strip_directives:
         header = _directive_re.sub('', header)
+    header = header.replace('\r\n', '\n')
 
     ffi = cffi.FFI()
     ffi.cdef(header)
