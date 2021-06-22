@@ -5,3 +5,4 @@ build
 __pycache__
 .eggs
 .pytest_cache
+tests/res/

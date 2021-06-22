@@ -11,9 +11,6 @@ setup(
     author_email='armin.ronacher@active-4.com',
     license='Apache License 2.0',
     packages=['milksnake'],
-    package_data={
-        'milksnake': ['empty.c'],
-    },
     description='A python library that extends setuptools for binary extensions.',
     long_description=readme,
     long_description_content_type='text/markdown',
