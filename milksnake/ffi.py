@@ -5,7 +5,7 @@ import cffi
 from ._compat import PY2
 
 
-_directive_re = re.compile(r'^\s*#.*?$(?m)')
+_directive_re = re.compile(r'^\s*#.*?$', re.MULTILINE)
 
 
 def make_ffi(module_path, header, strip_directives=False):
