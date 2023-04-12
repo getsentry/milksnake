@@ -1,19 +1,14 @@
 import os
 import sys
-import uuid
 import shutil
-import tempfile
 import subprocess
 
 from distutils import log
-from distutils.core import Extension
-from distutils.ccompiler import new_compiler
 from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 
 from cffi import FFI
 from cffi import recompiler as cffi_recompiler
-from cffi import setuptools_ext as cffi_ste
 
 try:
     from wheel.bdist_wheel import bdist_wheel
@@ -21,16 +16,6 @@ except ImportError:
     bdist_wheel = None
 
 here = os.path.abspath(os.path.dirname(__file__))
-EMPTY_C = u'''
-void init%(mod)s(void) {}
-void PyInit_%(mod)s(void) {}
-'''
-
-BUILD_PY = u'''
-import cffi
-from milksnake.ffi import make_ffi
-ffi = make_ffi(**%(kwargs)r)
-'''
 
 MODULE_PY = u'''# auto-generated file
 __all__ = ['lib', 'ffi']
@@ -88,24 +73,6 @@ class Spec(object):
                     func(base_path=base_path, inplace=False)
 
         class MilksnakeBuildExt(base_build_ext):
-            def get_ext_fullpath(self, ext_name):
-                milksnake_dummy_ext = None
-                for ext in spec.dist.ext_modules:
-                    if ext.name == ext_name:
-                        milksnake_dummy_ext = getattr(
-                            ext, 'milksnake_dummy_ext', None)
-                        break
-
-                if milksnake_dummy_ext is None:
-                    return base_build_ext.get_ext_fullpath(self, ext_name)
-
-                fullname = self.get_ext_fullname(ext_name)
-                modpath = fullname.split('.')
-                package = '.'.join(modpath[0:-1])
-                build_py = self.get_finalized_command('build_py')
-                package_dir = os.path.abspath(build_py.get_package_dir(package))
-                return os.path.join(package_dir, milksnake_dummy_ext)
-
             def run(self):
                 base_build_ext.run(self)
                 if self.inplace:
@@ -216,13 +183,20 @@ class CffiModuleBuildStep(BuildStep):
 
         genbase = '%s._%s' % (parts[0], parts[1].lstrip('_'))
         self.cffi_module_path = '%s__ffi' % genbase
-        self.fake_module_path = '%s__lib' % genbase
 
         from distutils.sysconfig import get_config_var
-        self.lib_filename = '%s__lib%s' % (
-            genbase.split('.')[-1],
-            get_config_var('SHLIB_SUFFIX') or get_config_var('SO')
-        )
+
+        if sys.platform == 'darwin':
+            plat_ext = ".dylib"
+        elif sys.platform == 'win32':
+            plat_ext = ".dll"
+        else:
+            plat_ext = ".so"
+        ext = get_config_var('EXT_SUFFIX') or \
+            get_config_var('SHLIB_SUFFIX') or \
+            get_config_var('SO') or plat_ext
+
+        self.lib_filename = '%s__lib%s' % (genbase.split('.')[-1], ext)
 
     def get_header_source(self):
         if self.header_source is not None:
@@ -237,26 +211,8 @@ class CffiModuleBuildStep(BuildStep):
 
     def prepare_build(self):
         dist = self.spec.dist
-
-        # Because distutils was never intended to support other languages and
-        # this was never cleaned up, we need to generate a fake C module which
-        # we later override with our rust module.  This means we just compile
-        # an empty .c file into a Python module.  This will trick wheel and
-        # other systems into assuming our library has binary extensions.
         if dist.ext_modules is None:
             dist.ext_modules = []
-
-        build = dist.get_command_obj('build')
-        build.ensure_finalized()
-        empty_c_path = os.path.join(build.build_temp, 'empty.c')
-        if not os.path.isdir(build.build_temp):
-            os.makedirs(build.build_temp)
-        with open(empty_c_path, 'w') as f:
-            f.write(EMPTY_C % {'mod': self.fake_module_path.split('.')[-1]})
-
-        ext = Extension(self.fake_module_path, sources=[empty_c_path])
-        ext.milksnake_dummy_ext = self.lib_filename
-        dist.ext_modules.append(ext)
 
         def make_ffi():
             from milksnake.ffi import make_ffi
@@ -319,8 +275,33 @@ def patch_universal_wheel(dist):
     dist.cmdclass['bdist_wheel'] = MilksnakeBdistWheel
 
 
+def patch_distutils_build(dist):
+    """Trick wheel and other systems into assuming
+    our library has binary extensions
+
+    See also https://github.com/pypa/distutils/pull/43
+    """
+    from distutils.command import build as _build
+
+    class build(_build.build, object):
+        def finalize_options(self):
+            super(build, self).finalize_options()
+            if self.distribution.has_ext_modules():
+                self.build_lib = self.build_platlib
+            else:
+                self.build_lib = self.build_purelib
+
+    _build.build = build
+
+    orig_has_ext_modules = dist.has_ext_modules
+    dist.has_ext_modules = lambda: (
+        orig_has_ext_modules() or bool(dist.milksnake_tasks)
+    )
+
+
 def milksnake_tasks(dist, attr, value):
     """Registers task callbacks."""
+    patch_distutils_build(dist)
     patch_universal_wheel(dist)
 
     spec = Spec(dist)

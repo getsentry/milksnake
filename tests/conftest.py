@@ -1,4 +1,5 @@
 import os
+import sys
 import uuid
 import json
 import atexit
@@ -28,7 +29,10 @@ class VirtualEnv(object):
         self.path = path
 
     def spawn(self, executable, args=None, **kwargs):
-        return subprocess.Popen([os.path.join(self.path, 'bin', executable)] +
+        bin_dir = 'bin'
+        if sys.platform == 'win32' and not executable.endswith('.exe'):
+            bin_dir = 'Scripts'
+        return subprocess.Popen([os.path.join(self.path, bin_dir, executable)] +
                                 list(args or ()), **kwargs)
 
     def run(self, executable, args=None):
@@ -62,7 +66,7 @@ def virtualenv():
     subprocess.Popen(['virtualenv', path]).wait()
     try:
         venv = VirtualEnv(path)
-        venv.run('pip', ['install', '--editable', root])
+        venv.run('python', ['-m', 'pip', 'install', '--editable', root])
         yield venv
     finally:
         _remove()
